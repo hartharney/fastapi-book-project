@@ -1,4 +1,4 @@
-name: CD Pipeline
+name: Deploy to EC2
 
 on:
   push:
@@ -8,15 +8,25 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: SSH and deploy
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ec2-13-51-69-79.eu-north-1.compute.amazonaws.com >> ~/.ssh/known_hosts
+
+      - name: Deploy with SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ec2-13-51-69-79.eu-north-1.compute.amazonaws.com
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd fastapi-book-project
+            cd /home/ubuntu/your_project_directory
             git pull origin main
-            sudo docker-compose up -d --build
+            docker-compose down
+            docker-compose up -d --build
