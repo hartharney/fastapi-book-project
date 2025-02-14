@@ -1,4 +1,4 @@
-name: Deploy
+name: Deployment Pipeline
 
 on:
   push:
@@ -10,21 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install dependencies
+      - name: Build and push Docker image
         run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Deploy Application
-        run: |
-          echo "Deploying application..."
+          docker build -t fastapi-app .
+          docker run -d -p 8000:8000 fastapi-app
